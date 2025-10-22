@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gerar imagem circular (78x78)</title>
+  <style>
+    body {
+      font-family: "Trebuchet MS", sans-serif;
+      text-align: center;
+      padding: 30px;
+      background: #f7f7f7;
+    }
+
+    /* Estilo do logo */
+    .logo {
+      width: 150px; /* tamanho reduzido */
+      max-width: 80%;
+      margin: 0 auto 20px auto; /* centralizado com espaçamento abaixo */
+      display: block;
+    }
+
+    h2 {
+      margin-bottom: 8px;
+    }
+
+    .info {
+      font-size: 14px;
+      color: #333;
+      display: block;
+      margin-bottom: 15px;
+    }
+
+    .preview {
+      width: 78px;
+      height: 78px;
+      border-radius: 50%;
+      overflow: hidden;
+      margin: 20px auto;
+      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+      display: none;
+    }
+
+    .preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    input[type="file"] {
+      margin: 15px 0;
+    }
+
+    button {
+      background: #8224d4;
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: none;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background: #5e1aa0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Logo Hiper -->
+  <img 
+    src="https://email-editor-production.s3.amazonaws.com/images/3858/logo-hiper.png" 
+    alt="Logo Hiper" 
+    class="logo"
+  >
+
+  <h2>Gere a sua imagem para assinatura!</h2>
+  <span class="info"><strong>Recomendação:</strong> escolha uma foto mais quadrada, para preservar as proporções dentro do recorte circular. 😉</span>
+  
+  <input type="file" accept="image/*" id="upload" />
+
+  <div class="preview" id="preview">
+    <img id="output" />
+  </div>
+
+  <button id="downloadBtn">Baixar imagem</button>
+
+  <canvas id="canvas" width="78" height="78" style="display:none;"></canvas>
+
+  <script>
+    const upload = document.getElementById('upload');
+    const output = document.getElementById('output');
+    const preview = document.getElementById('preview');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    upload.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const size = canvas.width;      // tamanho total (ex: 78)
+          const center = size / 2;        // centro do círculo
+          const radius = size / 2;        // raio
+
+          // Limpa o canvas
+          ctx.clearRect(0, 0, size, size);
+
+          // Define o recorte circular
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(center, center, radius, 0, Math.PI * 2, true);
+          ctx.closePath();
+          ctx.clip();
+
+          // Desenha a imagem dentro do recorte
+          ctx.drawImage(img, 0, 0, size, size);
+          ctx.restore();
+
+          // Exibe a prévia e botão
+          output.src = canvas.toDataURL('image/png');
+          preview.style.display = 'block';
+          downloadBtn.style.display = 'inline-block';
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      const link = document.createElement('a');
+      link.download = 'imagem_assinatura.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+  </script>
+</body>
+</html>
